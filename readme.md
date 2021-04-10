@@ -1,41 +1,58 @@
-# gomod
+# writefs
 
-This is a template I use to create my go module templates.
+> Package writefs provides interface WriteFS that extend fs.FS to support write operations.
 
-# Usage 
+<div align="center">
+<a 
+    href="https://github.com/parrogo/writefs/blob/main/go.mod#L3" style="display: inline">
+    <img 
+        alt="Go Version" 
+        src="https://img.shields.io/github/go-mod/go-version/parrogo/writefs?style=flat&logo=go">
+</a>
+<a 
+    href="https://github.com/parrogo/writefs/actions/workflows/go.yml" 
+    style="display: inline"> 
+    <img 
+        alt="Tests Status" 
+        src="https://img.shields.io/github/workflow/status/parrogo/writefs/Test/main?style=flat&label=Tests&logo=github">
+</a>
+<a 
+    href="https://codeclimate.com/repos/607174561ffb1138e20009ae/test_coverage"
+    style="display: inline">
+    <img alt="Test Coverage"  
+        src="https://api.codeclimate.com/v1/badges/42f01aac3880c417b7b7/test_coverage" />
+</a>
+<a 
+    href="https://codeclimate.com/repos/607174561ffb1138e20009ae/maintainability"
+    style="display: inline">
+    <img alt="Code Climate Maintainability" 
+        src="https://api.codeclimate.com/v1/badges/42f01aac3880c417b7b7/maintainability" 
+    />
+</a>
+<a 
+    href="https://pkg.go.dev/github.com/parrogo/writefs" 
+    style="display: inline"> 
+    <img 
+        alt="Docs" 
+        src="https://img.shields.io/badge/Docs-go.dev-blue?logo=go&logoColor=white&style=flat">
+</a>
+</div>
 
-TLDR: click on 'use template' button above, have fun!
 
-# How it work
 
-When you create a new repository from this template,
-[initialize](.github/workflows/initialize.yml) GitHub action 
-is executed on your newly created repository.
+# Documentation
 
-The `initialize` action install and run 
-[templatedir](github.com/parro-it/templatedir)
-command (you can look there for details of what it 
-does, but it basically render any file 
-in the repository which has a `.template` 
-extension and a Go template syntax. 
+* See [examples](examples_test.go) of use.
+* Read the API docs on [go.dev](https://pkg.go.dev/github.com/parrogo/writefs).
 
-Rendered templates are saved to disk 
-with the same filename but without `.template`.
-Template files are deleted, and then all these changes
-are committed back to your repository.
+# Contributing
 
-# Customize this template.
-
-You can have a look at the `.template`
-files in this repository as examples
-of use if you want to make your own template
-based on [templatedir](github.com/parro-it/templatedir).
-
+* Pull request are welcome!
+* Open an issue if you find a bug.
+* If you want to request a new feature or need help, starts a [new discussion](https://github.com/parrogo/writefs/discussions/new).
+* Read [contribution guidelines](contributing.md).
 
 # License
 [MIT Licensed](LICENSE)
 
-© 2021 Andrea Parodi
-
-
-
+© 2021 Parro's Go Packages
