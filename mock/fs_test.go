@@ -14,7 +14,7 @@ import (
 var fixtureRootFS embed.FS
 var fixtureFS, _ = fs.Sub(fixtureRootFS, "fixtures")
 
-func TestMockFS(t *testing.T) {
+func TestFS(t *testing.T) {
 
 	t.Run("StatFS", func(t *testing.T) {
 		fsys := &FS{}
