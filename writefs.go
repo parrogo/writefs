@@ -29,8 +29,16 @@ func (f ReadOnlyWriteFile) Write(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("file does not support write: %w", fs.ErrInvalid)
 }
 
+func openFileReadOnly(fsInst fs.FS, name string) (FileWriter, error) {
+	file, err := fsInst.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	return ReadOnlyWriteFile{file}, nil
+}
+
 // OpenFile ...
-func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (FileWriter, error) {
+func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (w FileWriter, err error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{}
 	}
@@ -40,11 +48,7 @@ func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (FileWriter
 	}
 
 	if flag == os.O_RDONLY {
-		file, err := fsInst.Open(name)
-		if err != nil {
-			return nil, err
-		}
-		return ReadOnlyWriteFile{file}, nil
+		return openFileReadOnly(fsInst, name)
 	}
 
 	return nil, fmt.Errorf("file system does not support write: %w", fs.ErrInvalid)
