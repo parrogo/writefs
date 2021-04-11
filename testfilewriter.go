@@ -1,5 +1,6 @@
 package writefs
 
+/*
 import (
 	"io/fs"
 	"testing/fstest"
@@ -61,3 +62,4 @@ func (fsys testWriteFS) OpenFile(name string, flag int, perm fs.FileMode) (FileW
 	}
 	return testFileWriter{}, fsys.expectedErr
 }
+*/
