@@ -60,66 +60,52 @@ func (fsys *FS) Remove(name string) error {
 	return args.Error(0)
 }
 
-// calledWithPath abstracts away the code
-// shared by all other function called with a string
-// argument and that returns any,error
-func calledWithPath(fsys *FS, args mock.Arguments) (res interface{}, err error) {
-
-	res = args.Get(0)
-	return res, args.Error(1)
-}
-
 // Stat implements fs.StatFS
 func (fsys *FS) Stat(name string) (fs.FileInfo, error) {
-	res, err := calledWithPath(fsys, fsys.Called(name))
-	if res == nil {
-		return nil, err
-	}
-	return res.(fs.FileInfo), err
-
+	args := fsys.Called(name)
+	res, err := args.Get(0), args.Error(1)
+	res2, _ := res.(fs.FileInfo)
+	return res2, err
 }
 
 // ReadFile implements fs.ReadFileFS
 func (fsys *FS) ReadFile(name string) ([]byte, error) {
-	res, err := calledWithPath(fsys, fsys.Called(name))
-	if res == nil {
-		return nil, err
-	}
-	return res.([]byte), err
+	args := fsys.Called(name)
+	res, err := args.Get(0), args.Error(1)
+	res2, _ := res.([]byte)
+	return res2, err
 }
 
 // Sub implements fs.SubFS
 func (fsys *FS) Sub(dir string) (fs.FS, error) {
-	res, err := calledWithPath(fsys, fsys.Called(dir))
-	if res == nil {
-		return nil, err
-	}
-	return res.(fs.FS), err
+	args := fsys.Called(dir)
+	res, err := args.Get(0), args.Error(1)
+	res2, _ := res.(fs.FS)
+	return res2, err
 }
 
 // Open implements fs.FS
 func (fsys *FS) Open(name string) (fs.File, error) {
-	res, err := calledWithPath(fsys, fsys.Called(name))
-	if res == nil {
-		return nil, err
-	}
-	return res.(fs.File), err
+	args := fsys.Called(name)
+	res, err := args.Get(0), args.Error(1)
+	res2, _ := res.(fs.File)
+	return res2, err
+
 }
 
 // ReadDir implements fs.ReadDirFS
 func (fsys *FS) ReadDir(name string) ([]fs.DirEntry, error) {
-	res, err := calledWithPath(fsys, fsys.Called(name))
-	if res == nil {
-		return nil, err
-	}
-	return res.([]fs.DirEntry), err
+	args := fsys.Called(name)
+	res, err := args.Get(0), args.Error(1)
+	res2, _ := res.([]fs.DirEntry)
+	return res2, err
+
 }
 
 // Glob implements fs.GlobFS
 func (fsys *FS) Glob(pattern string) ([]string, error) {
-	res, err := calledWithPath(fsys, fsys.Called(pattern))
-	if res == nil {
-		return nil, err
-	}
-	return res.([]string), err
+	args := fsys.Called(pattern)
+	res, err := args.Get(0), args.Error(1)
+	res2, _ := res.([]string)
+	return res2, err
 }
