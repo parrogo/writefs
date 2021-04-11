@@ -1,5 +1,8 @@
 package writefs_test
 
+// # TODO: manage how to write an example using maybe a mock fs?
+
+/*
 import (
 	"embed"
 	"io/fs"
@@ -21,3 +24,4 @@ func ExampleOpenFile(fsys writefs.WriteFS) {
 	f.Write([]byte("ciao"))
 	// Output: 42
 }
+*/
