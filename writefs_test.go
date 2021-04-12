@@ -60,11 +60,73 @@ func TestWriteFS(t *testing.T) {
 			require.Error(err)
 
 			assert.ErrorIs(err, fs.ErrInvalid)
-			perr, isPathErr := err.(*fs.PathError)
-			require.True(isPathErr)
-			assert.Equal("WriteFile: OpenFile", perr.Op)
+
+			var perr *fs.PathError
+			require.ErrorAs(err, &perr)
+
+			assert.Equal("OpenFile", perr.Op)
 			assert.Equal("not-existent", perr.Path)
-			assert.Equal("WriteFile: OpenFile not-existent: invalid argument fsys: does not implement WriteFS", perr.Error())
+			assert.Equal("OpenFile not-existent: invalid argument fsys: does not implement WriteFS", perr.Error())
+			assert.Equal("WriteFile: OpenFile not-existent: invalid argument fsys: does not implement WriteFS", err.Error())
+		})
+
+		t.Run("wraps Close errors if any", func(t *testing.T) {
+
+			testfs := mockfs.FS{}
+
+			writer := mockfs.FileWriter{}
+			writer.On("Write", data).Return(len(data), nil)
+			writer.On("Close").Return(&fs.PathError{
+				Op:   "Close",
+				Err:  fs.ErrClosed,
+				Path: ".",
+			})
+			testfs.On("OpenFile", ".", mock.Anything, mock.Anything).Return(&writer, nil)
+
+			n, err := writefs.WriteFile(&testfs, ".", data)
+			assert.Zero(n)
+			require.Error(err)
+
+			writer.AssertExpectations(t)
+			testfs.AssertExpectations(t)
+
+			assert.ErrorIs(err, fs.ErrClosed)
+
+			var perr *fs.PathError
+			require.ErrorAs(err, &perr)
+
+			assert.Equal("Close", perr.Op)
+			assert.Equal(".", perr.Path)
+			assert.Equal("Close .: file already closed", perr.Error())
+			assert.Equal("WriteFile: Close .: file already closed", err.Error())
+		})
+
+		t.Run("wraps Write error if any", func(t *testing.T) {
+
+			testfs := mockfs.FS{}
+
+			writer := mockfs.FileWriter{}
+			writer.On("Write", data).Return(0, errors.New("expected test failure"))
+			writer.On("Close").Return(&fs.PathError{
+				Op:   "Close",
+				Err:  fs.ErrClosed,
+				Path: ".",
+			})
+			testfs.On("OpenFile", ".", mock.Anything, mock.Anything).Return(&writer, nil)
+
+			n, err := writefs.WriteFile(&testfs, ".", data)
+			assert.Zero(n)
+			require.Error(err)
+
+			writer.AssertExpectations(t)
+			testfs.AssertExpectations(t)
+
+			var perr *fs.PathError
+			require.ErrorAs(err, &perr)
+
+			assert.Equal("WriteFile", perr.Op)
+			assert.Equal("WriteFile .: expected test failure", perr.Error())
+			assert.Equal(perr.Error(), err.Error())
 		})
 	})
 
@@ -129,7 +191,7 @@ func TestWriteFS(t *testing.T) {
 
 			testfs.On("OpenFile", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("expected"))
 			f, err := writefs.WriteFile(&testfs, "notexists", data)
-			assert.Equal("WriteFile: OpenFile notexists: expected", err.Error())
+			assert.Equal("WriteFile notexists: expected", err.Error())
 			assert.Zero(f)
 			testfs.AssertExpectations(t)
 		})

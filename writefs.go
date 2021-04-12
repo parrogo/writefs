@@ -12,6 +12,7 @@
 package writefs
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -152,20 +153,39 @@ func OpenFile(fsys fs.FS, name string, flag int, perm fs.FileMode) (w FileWriter
 // and closes it immediately after.
 // Number of writes written is returned an error if any.
 func WriteFile(fsys fs.FS, name string, buf []byte) (n int, err error) {
+	var file FileWriter
+
+	defer func() {
+		if file != nil {
+			errClose := file.Close()
+			if errClose != nil && err == nil {
+				err = errClose
+			}
+		}
+
+		if err != nil {
+			n = 0
+			err = wrappedPathError("WriteFile", name, err)
+		}
+	}()
+
 	if !fs.ValidPath(name) {
-		err = fmt.Errorf("%w name: not a valid path", fs.ErrInvalid)
-		return 0, &fs.PathError{Op: "WriteFile", Path: name, Err: err}
+		return 0, fmt.Errorf("%w name: not a valid path", fs.ErrInvalid)
 	}
 
-	file, err := OpenFile(fsys, name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(0644))
+	file, err = OpenFile(fsys, name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(0644))
 	if err != nil {
-		if perr, ok := err.(*fs.PathError); ok {
-			err = perr.Err
-		}
-		return 0, &fs.PathError{Op: "WriteFile: OpenFile", Path: name, Err: err}
+		return
 	}
-	defer file.Close()
 
 	n, err = file.Write(buf)
 	return
+}
+
+func wrappedPathError(op string, name string, err error) error {
+	var perr *fs.PathError
+	if errors.As(err, &perr) {
+		return fmt.Errorf("%s: %w", op, perr)
+	}
+	return &fs.PathError{Op: op, Path: name, Err: err}
 }
