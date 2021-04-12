@@ -124,6 +124,8 @@ func openFileReadOnly(fsInst fs.FS, name string) (FileWriter, error) {
 // Otherwise, if read only access is required, the call is forwarded
 // to fsys Open method, and the results wrapped in a ReadOnlyWriteFile
 // struct.
+//
+// Otherwise, the function return an `unsupported` error.
 func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (w FileWriter, err error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{}
@@ -140,7 +142,10 @@ func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (w FileWrit
 	return nil, fmt.Errorf("file system does not support write: %w", fs.ErrInvalid)
 }
 
-// WriteFile ...
+// WriteFile is an utility function that opens a file
+// using OpenFile function, write buf arg in the file
+// and closes it immediately after.
+// Number of writes written is returned an error if any.
 func WriteFile(fsys fs.FS, name string, buf []byte) (n int, err error) {
 	file, err := OpenFile(fsys, name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(0644))
 	if err != nil {
