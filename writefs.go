@@ -6,10 +6,10 @@
 // and it works similarly to os.OpenFile.
 //
 // There are also two subpackages:
-//	* mock contains a WriteFS implementation based on github.com/stretchr/testify/mock
-//    that simplify testing of your code.
-//  * test is similar to fs/fstest but allows you to check your writefs.WriteFS
-//	  implementation.
+// * mock contains a WriteFS implementation based on github.com/stretchr/testify/mock
+//   that simplify testing of your code.
+// * test is similar to fs/fstest but allows you to check your writefs.WriteFS
+//   implementation.
 package writefs
 
 import (
