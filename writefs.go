@@ -110,6 +110,8 @@ func openFileReadOnly(fsInst fs.FS, name string) (FileWriter, error) {
 	return ReadOnlyWriteFile{file}, nil
 }
 
+// # TODO: OpenFile flag argument should be of type Flag not int
+
 // OpenFile is the generalized open call; It opens the named file with
 // specified flags (O_RDONLY etc.).
 //
@@ -127,20 +129,22 @@ func openFileReadOnly(fsInst fs.FS, name string) (FileWriter, error) {
 // struct.
 //
 // Otherwise, the function return an `unsupported` error.
-func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (w FileWriter, err error) {
+func OpenFile(fsys fs.FS, name string, flag int, perm fs.FileMode) (w FileWriter, err error) {
 	if !fs.ValidPath(name) {
-		return nil, &fs.PathError{}
+		err = fmt.Errorf("%w name: not a valid path", fs.ErrInvalid)
+		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: err}
 	}
 
-	if fs, ok := fsInst.(WriteFS); ok {
+	if fs, ok := fsys.(WriteFS); ok {
 		return fs.OpenFile(name, flag, perm)
 	}
 
 	if flag == os.O_RDONLY {
-		return openFileReadOnly(fsInst, name)
+		return openFileReadOnly(fsys, name)
 	}
 
-	return nil, fmt.Errorf("file system does not support write: %w", fs.ErrInvalid)
+	err = fmt.Errorf("%w fsys: does not implement WriteFS", fs.ErrInvalid)
+	return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: err}
 }
 
 // WriteFile is an utility function that opens a file
@@ -148,9 +152,17 @@ func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (w FileWrit
 // and closes it immediately after.
 // Number of writes written is returned an error if any.
 func WriteFile(fsys fs.FS, name string, buf []byte) (n int, err error) {
+	if !fs.ValidPath(name) {
+		err = fmt.Errorf("%w name: not a valid path", fs.ErrInvalid)
+		return 0, &fs.PathError{Op: "WriteFile", Path: name, Err: err}
+	}
+
 	file, err := OpenFile(fsys, name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(0644))
 	if err != nil {
-		return 0, err
+		if perr, ok := err.(*fs.PathError); ok {
+			err = perr.Err
+		}
+		return 0, &fs.PathError{Op: "WriteFile: OpenFile", Path: name, Err: err}
 	}
 	defer file.Close()
 
