@@ -51,10 +51,12 @@ type WriteFS interface {
 	fs.FS
 	// OpenFile is the generalized open call; It opens the named file with
 	// specified flags (O_RDONLY etc.).
+	//
 	// If the file does not exist, and the O_CREATE flag is passed, it is
 	// created with mode perm. If successful, methods on the
 	// returned File can be used for I/O. If there is an error, it will
 	// be of type *fs.PathError.
+	//
 	// When flag Create is set and perm is fs.ModeDir, a directory is created
 	// with path `name`, creating parent directories as needed when missing.
 	// When flag Truncate is set, but not WriteOnly nor ReadWrite, file or
@@ -62,28 +64,43 @@ type WriteFS interface {
 	// any content will be deleted recursively.
 	// On both these circumstances, the function returns a nil FileWriter
 	// even in case of success.
+	//
 	// If this default semantic of directory creation and deletion is not
 	// sufficient or if your filesystem implementation support optimized
 	// algorithm, you can implements writefs.RemoveFS or writefs.MkDirFS
-	// that provides more control on the operations.
+	// that allow more control on the operations.
 	OpenFile(name string, flag int, perm fs.FileMode) (FileWriter, error)
 }
 
-// FileWriter ...
+// FileWriter extends fs.File interface with
+// io.Writer, thus requiring implementation to
+// have an additional Write method.
+// The Write method could be used to write data to the
+// file.
 type FileWriter interface {
 	fs.File
 	io.Writer
 }
 
-// ReadOnlyWriteFile ...
+// ReadOnlyWriteFile implements FileWriter for
+// a read only file. This struct is returned by OpenFile function
+// when ReadOnly flag is used.
+//
+// The Write method always returns an unsupported error.
+// All other operations will be forwarded to the underlying
+// fs.File instance.
 type ReadOnlyWriteFile struct {
 	fs.File
 }
 
+// Write implements io.Writer interface.
 func (f ReadOnlyWriteFile) Write(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("file does not support write: %w", fs.ErrInvalid)
 }
 
+// openFileReadOnly open a specified file
+// from a read only fs.FS, and wrap it in
+// a ReadOnlyWriteFile struct.
 func openFileReadOnly(fsInst fs.FS, name string) (FileWriter, error) {
 	file, err := fsInst.Open(name)
 	if err != nil {
@@ -92,7 +109,21 @@ func openFileReadOnly(fsInst fs.FS, name string) (FileWriter, error) {
 	return ReadOnlyWriteFile{file}, nil
 }
 
-// OpenFile ...
+// OpenFile is the generalized open call; It opens the named file with
+// specified flags (O_RDONLY etc.).
+//
+// If the file does not exist, and the O_CREATE flag is passed, it is
+// created with mode perm. If successful, methods on the
+// returned File can be used for I/O. If there is an error, it will
+// be of type *fs.PathError.
+//
+// The function use the given fsys argument to open the file.
+// if fsys implements WriteFS, the call is forwarded to its
+// OpenFile method.
+//
+// Otherwise, if read only access is required, the call is forwarded
+// to fsys Open method, and the results wrapped in a ReadOnlyWriteFile
+// struct.
 func OpenFile(fsInst fs.FS, name string, flag int, perm fs.FileMode) (w FileWriter, err error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{}
