@@ -18,6 +18,8 @@ import (
 	"os"
 )
 
+// # TODO: review and spell check documentation.
+
 // Flag is a type that represents the
 // values accepted by OpenFile function
 // flag argument.
