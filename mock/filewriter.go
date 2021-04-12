@@ -47,8 +47,6 @@ func (w *FileWriter) Read(buf []byte) (int, error) {
 func (w *FileWriter) Stat() (fs.FileInfo, error) {
 	args := w.Called()
 	res := args.Get(0)
-	if res == nil {
-		return nil, args.Error(1)
-	}
-	return res.(fs.FileInfo), args.Error(1)
+	res2, _ := res.(fs.FileInfo)
+	return res2, args.Error(1)
 }
