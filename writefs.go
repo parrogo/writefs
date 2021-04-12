@@ -46,28 +46,28 @@ const (
 // on file systems.
 // OpenFile method could be used to open files for write
 // but also to create directories and delete files or directories.
+// OpenFile is the generalized open call; It opens the named file with
+// specified flags (O_RDONLY etc.).
+//
+// If the file does not exist, and the O_CREATE flag is passed, it is
+// created with mode perm. If successful, methods on the
+// returned File can be used for I/O. If there is an error, it will
+// be of type *fs.PathError.
+//
+// When flag Create is set and perm is fs.ModeDir, a directory is created
+// with path `name`, creating parent directories as needed when missing.
+// When flag Truncate is set, but not WriteOnly nor ReadWrite, file or
+// directory at path `name` is deleted. If the directory is not empty,
+// any content will be deleted recursively.
+// On both these circumstances, the function returns a nil FileWriter
+// even in case of success.
+//
+// If this default semantic of directory creation and deletion is not
+// sufficient or if your filesystem implementation support optimized
+// algorithm, you can implements writefs.RemoveFS or writefs.MkDirFS
+// that allow more control on the operations.
 type WriteFS interface {
 	fs.FS
-	// OpenFile is the generalized open call; It opens the named file with
-	// specified flags (O_RDONLY etc.).
-	//
-	// If the file does not exist, and the O_CREATE flag is passed, it is
-	// created with mode perm. If successful, methods on the
-	// returned File can be used for I/O. If there is an error, it will
-	// be of type *fs.PathError.
-	//
-	// When flag Create is set and perm is fs.ModeDir, a directory is created
-	// with path `name`, creating parent directories as needed when missing.
-	// When flag Truncate is set, but not WriteOnly nor ReadWrite, file or
-	// directory at path `name` is deleted. If the directory is not empty,
-	// any content will be deleted recursively.
-	// On both these circumstances, the function returns a nil FileWriter
-	// even in case of success.
-	//
-	// If this default semantic of directory creation and deletion is not
-	// sufficient or if your filesystem implementation support optimized
-	// algorithm, you can implements writefs.RemoveFS or writefs.MkDirFS
-	// that allow more control on the operations.
 	OpenFile(name string, flag int, perm fs.FileMode) (FileWriter, error)
 }
 
