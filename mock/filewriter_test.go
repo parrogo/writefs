@@ -1,7 +1,9 @@
 package mock
 
 import (
+	"io/fs"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -49,7 +51,22 @@ func TestFileWriter(t *testing.T) {
 		info, err := w.Stat()
 		assert.NoError(t, err)
 		assert.Nil(t, info)
+
 		w.AssertExpectations(t)
 	})
 
+}
+
+func newMemDirInfo(name string) fs.FileInfo {
+	tmp := fstest.MapFS{}
+	tmp[name] = &fstest.MapFile{}
+	file, err := tmp.Open(name)
+	if err != nil {
+		panic(err)
+	}
+	info, err := file.Stat()
+	if err != nil {
+		panic(err)
+	}
+	return info
 }

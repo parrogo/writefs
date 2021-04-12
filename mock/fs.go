@@ -28,10 +28,8 @@ var (
 func (fsys *FS) OpenFile(name string, flag int, perm fs.FileMode) (writefs.FileWriter, error) {
 	args := fsys.Called(name, flag, perm)
 	res := args.Get(0)
-	if res == nil {
-		return nil, args.Error(1)
-	}
-	return res.(writefs.FileWriter), args.Error(1)
+	res2, _ := res.(writefs.FileWriter)
+	return res2, args.Error(1)
 }
 
 // MkDir implements writefs.MkDirFS
